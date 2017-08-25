@@ -1,7 +1,7 @@
 import json
 import numpy as np
 from math import isnan
-from sklearn.preprocessing import scale
+from sklearn.preprocessing import scale, minmax_scale
 from sklearn.model_selection import train_test_split
 
 
@@ -50,7 +50,7 @@ def write_to_json(variables_dict):
         print("Finished writing to json variable {} of {}".format(counter, num_variables))
 
 
-def load_from_json(predictors, response, sample_size=1000000000):
+def load_from_json(predictors, response):
     variables_dict = {}
     num_variables = len(predictors) + 1
     counter = 0
@@ -58,7 +58,7 @@ def load_from_json(predictors, response, sample_size=1000000000):
     for predictor in predictors + [response]:
         counter += 1
         with open('json_files/' + predictor + '.json', 'r') as fd:
-            variables_dict[predictor] = json.loads(fd.read())[0:sample_size]
+            variables_dict[predictor] = json.loads(fd.read())
         print("Finished downloading json variable {} of {}".format(counter, num_variables))
     return variables_dict
 
@@ -67,9 +67,9 @@ def create_model_data(variables_dict, predictors, response):
     predictors = np.column_stack(([variables_dict[variable_name] for variable_name in predictors]))
     print('Finished Munging Data')
     xtrain, xtest, ytrain, ytest = train_test_split(predictors, variables_dict[response])
-    print('Finished Splitting Data')
     ytrain_hot = np.zeros((len(ytrain), 2))
     ytrain_hot[np.arange(len(ytrain)), ytrain] = 1
     ytest_hot = np.zeros((len(ytest), 2))
     ytest_hot[np.arange(len(ytest)), ytest] = 1
+    print('Finished Splitting Data')
     return xtrain, xtest, ytrain_hot, ytest_hot
